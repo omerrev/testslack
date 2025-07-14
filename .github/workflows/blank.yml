@@ -23,10 +23,9 @@ jobs:
           status: starting
           # github.repositoryUrl	 I will test this as well to see which is better
           message: |
-            Workflow started
-            User: ${{ github.actor }} 
-            Repo: ${{ github.repository }} 
-            Branch: ${{ github.ref_name }}
+            GitHub Action Workflow Started: ${{ github.workflow }}
+            Commit: ${{ github.sha }}
+            Triggered by: ${{ github.actor }}
         if: always()
             
       - name: Send slack notification for the job status
@@ -35,6 +34,11 @@ jobs:
           status: ${{ job.status }}
           # This will summarize each step in the workflow if it succeeded or failed
           steps: ${{ toJson(steps) }}
+          message: |
+            Deployment ${{ job.status == 'success' & 'Successful!' || 'Failed!' }}
+            Workflow: ${{ github.workflow }}
+            Status: ${{ job.status }}
+            View Details & Logs: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
         if: always()
   
           
