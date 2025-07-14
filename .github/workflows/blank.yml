@@ -1,0 +1,27 @@
+# This is a basic workflow to help you get started with Actions
+
+name: CI
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the "main" branch
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  slack-notify-starting:
+    runs-on: ubuntu-latest
+
+    env: 
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+    steps:
+      - name: send notification to slack
+        uses: act10ns/slack@v2
+        with:
+          status: starting
+          # github.repositoryUrl	 I will test this as well to see which is better
+          message: Workflow started - User: ${{ github.actor }} Repo: ${{ github.repository }} Branch: ${{ github.ref_name }}
+        if: always()
+          
