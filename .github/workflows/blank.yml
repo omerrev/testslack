@@ -33,6 +33,7 @@ jobs:
         uses: act10ns/slack@v2
         with:
           status: ${{ job.status }}
+          # This will summarize each step in the workflow if it succeeded or failed
           steps: ${{ toJson(steps) }}
         if: always()
   
