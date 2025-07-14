@@ -23,6 +23,6 @@ jobs:
         with:
           status: starting
           # github.repositoryUrl	 I will test this as well to see which is better
-          message: Workflow started - User: ${{ github.actor }} Repo: ${{ github.repository }} Branch: ${{ github.ref_name }}
+          message: "Workflow started - User: ${{ github.actor }} Repo: ${{ github.repository }} Branch: ${{ github.ref_name }}"
   
           
