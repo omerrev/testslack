@@ -4,30 +4,49 @@ on:
   workflow_dispatch:
 
 jobs:
-  slack-notify:
+  force-fail:
     runs-on: ubuntu-latest
-    env: 
+
+    env:
       SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
     steps:
-      - name: Notify Slack - Workflow Started 🚀
+      - name: Send Slack Notification - Started 🚀
         uses: act10ns/slack@v2
         with:
           status: starting
           message: |
-            🚀 *GitHub Action Workflow Started:* `Deploy to Amazon ECS`
+            🚀 *GitHub Action Workflow Started:* `${{ github.workflow }}`
+            *Repository:* `${{ github.repository }}`
+            *Branch:* `${{ github.ref_name }}`
             *Commit:* `${{ github.sha }}`
             *Triggered by:* `${{ github.actor }}`
 
-      - name: Notify Slack - Completion
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Simulate failure 💣
+        run: |
+          echo "This job will now fail intentionally."
+          exit 1
+
+  slack-notify:
+    needs: force-fail
+    runs-on: ubuntu-latest
+    if: always()
+    env:
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+    steps:
+      - name: Send Slack Notification - Final Status ✅❌
         uses: act10ns/slack@v2
         with:
-          status: ${{ job.status }}
-          steps: ${{ toJson(steps) }}
+          status: ${{ needs.force-fail.result }}
           message: |
-            ${{ job.status == 'success' && ':white_check_mark: *Deployment Successful!* :tada:' || ':x: *Deployment Failed!* :boom:' }}
-            *Workflow:* `Deploy to Amazon ECS`
-            *Status:* `${{ job.status }}`
+            ${{ needs.force-fail.result == 'success' && ':white_check_mark: *Deployment Successful!* :tada:' || ':x: *Deployment Failed!* :boom:' }}
+            *Workflow:* `${{ github.workflow }}`
+            *Repository:* `${{ github.repository }}`
+            *Branch:* `${{ github.ref_name }}`
+            *Status:* `${{ needs.force-fail.result }}`
             *Commit:* `${{ github.sha }}`
-            *View Details & Logs:* <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}>
-        if: always()
+            🔗 *View Details & Logs:* <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}>
