@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
 
 jobs:
-  force-fail:
+  notify-start:
     runs-on: ubuntu-latest
-
+    timeout-minutes: 2
     env:
       SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
@@ -22,17 +22,20 @@ jobs:
             *Commit:* `${{ github.sha }}`
             *Triggered by:* `${{ github.actor }}`
 
-      - name: Checkout code
-        uses: actions/checkout@v3
+  main-job:
+    needs: notify-start
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
 
-      - name: Simulate failure 💣
+    steps:
+      - name: Example real task
         run: |
-          echo "This job will now fail intentionally."
-          exit 1
+          echo "Add real deployment/build steps here"
 
   slack-notify:
-    needs: force-fail
+    needs: main-job
     runs-on: ubuntu-latest
+    timeout-minutes: 2
     if: always()
     env:
       SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
@@ -41,12 +44,12 @@ jobs:
       - name: Send Slack Notification - Final Status ✅❌
         uses: act10ns/slack@v2
         with:
-          status: ${{ needs.force-fail.result }}
+          status: ${{ needs.main-job.result }}
           message: |
-            ${{ needs.force-fail.result == 'success' && ':white_check_mark: *Deployment Successful!* :tada:' || ':x: *Deployment Failed!* :boom:' }}
+            ${{ needs.main-job.result == 'success' && ':white_check_mark: *Deployment Successful!* :tada:' || ':x: *Deployment Failed!* :boom:' }}
             *Workflow:* `${{ github.workflow }}`
             *Repository:* `${{ github.repository }}`
             *Branch:* `${{ github.ref_name }}`
-            *Status:* `${{ needs.force-fail.result }}`
+            *Status:* `${{ needs.main-job.result }}`
             *Commit:* `${{ github.sha }}`
             🔗 *View Details & Logs:* <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}>
