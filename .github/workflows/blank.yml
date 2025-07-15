@@ -1,44 +1,33 @@
-# This is a basic workflow to help you get started with Actions
-
 name: CI
 
-# Controls when the workflow will run
 on:
-  # Triggers the workflow on push or pull request events but only for the "main" branch
-  # push:
-  #   branches: [ "main" ]
   workflow_dispatch:
 
 jobs:
-  slack-notify-starting:
+  slack-notify:
     runs-on: ubuntu-latest
-
     env: 
       SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
     steps:
-      - name: send notification to slack
+      - name: Notify Slack - Workflow Started 🚀
         uses: act10ns/slack@v2
         with:
           status: starting
-          # github.repositoryUrl	 I will test this as well to see which is better
           message: |
-            GitHub Action Workflow Started: ${{ github.workflow }}
-            Commit: ${{ github.sha }}
-            Triggered by: ${{ github.actor }}
-        if: always()
-            
-      - name: Send slack notification for the job status
+            🚀 *GitHub Action Workflow Started:* `Deploy to Amazon ECS`
+            *Commit:* `${{ github.sha }}`
+            *Triggered by:* `${{ github.actor }}`
+
+      - name: Notify Slack - Completion
         uses: act10ns/slack@v2
         with:
           status: ${{ job.status }}
-          # This will summarize each step in the workflow if it succeeded or failed
           steps: ${{ toJson(steps) }}
           message: |
-            Deployment ${{ job.status == 'success' && 'Successful!' || 'Failed!' }}
-            Workflow: ${{ github.workflow }}
-            Status: ${{ job.status }}
-            View Details & Logs: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            ${{ job.status == 'success' && ':white_check_mark: *Deployment Successful!* :tada:' || ':x: *Deployment Failed!* :boom:' }}
+            *Workflow:* `Deploy to Amazon ECS`
+            *Status:* `${{ job.status }}`
+            *Commit:* `${{ github.sha }}`
+            *View Details & Logs:* <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}>
         if: always()
-  
-          
